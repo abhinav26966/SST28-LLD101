@@ -1,13 +1,12 @@
 package com.example.reports;
 
 /**
- * CURRENT STATE (BROKEN ON PURPOSE):
- * - Viewer depends directly on concrete ReportFile
- * - No Proxy involved
+ * Depends only on the {@link Report} abstraction, so the viewer is unaware
+ * of whether it is talking to a proxy or a real report.
  */
 public class ReportViewer {
 
-    public void open(ReportFile report, User user) {
+    public void open(Report report, User user) {
         report.display(user);
     }
 }
