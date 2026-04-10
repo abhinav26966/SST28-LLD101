@@ -1,14 +1,22 @@
 import java.util.*;
 
 public class DeviceRegistry {
-    private final java.util.List<SmartClassroomDevice> devices = new ArrayList<>();
+    private final List<SmartClassroomDevice> devices = new ArrayList<>();
 
     public void add(SmartClassroomDevice d) { devices.add(d); }
 
-    public SmartClassroomDevice getFirstOfType(String simpleName) {
+    public <T> T getFirst(Class<T> capability) {
         for (SmartClassroomDevice d : devices) {
-            if (d.getClass().getSimpleName().equals(simpleName)) return d;
+            if (capability.isInstance(d)) return capability.cast(d);
         }
-        throw new IllegalStateException("Missing: " + simpleName);
+        throw new IllegalStateException("No device with capability: " + capability.getSimpleName());
+    }
+
+    public <T> List<T> getAll(Class<T> capability) {
+        List<T> out = new ArrayList<>();
+        for (SmartClassroomDevice d : devices) {
+            if (capability.isInstance(d)) out.add(capability.cast(d));
+        }
+        return out;
     }
 }
