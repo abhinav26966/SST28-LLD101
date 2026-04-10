@@ -4,31 +4,38 @@ import com.example.tickets.TicketService;
 import java.util.List;
 
 /**
- * Starter demo that shows why mutability is risky.
- *
- * After refactor:
- * - direct mutation should not compile (no setters)
- * - external modifications to tags should not affect the ticket
- * - service "updates" should return a NEW ticket instance
+ * Demonstrates IncidentTicket immutability:
+ *   - "updates" return new instances; the original is never mutated
+ *   - the tags list exposed via getTags() cannot be modified from outside
  */
 public class TryIt {
 
     public static void main(String[] args) {
         TicketService service = new TicketService();
 
-        IncidentTicket t = service.createTicket("TCK-1001", "reporter@example.com", "Payment failing on checkout");
-        System.out.println("Created: " + t);
+        IncidentTicket original = service.createTicket(
+                "TCK-1001", "reporter@example.com", "Payment failing on checkout");
+        System.out.println("Created:  " + original);
 
-        // Demonstrate post-creation mutation through service
-        service.assign(t, "agent@example.com");
-        service.escalateToCritical(t);
-        System.out.println("\nAfter service mutations: " + t);
+        IncidentTicket assigned = service.assign(original, "agent@example.com");
+        IncidentTicket escalated = service.escalateToCritical(assigned);
+        System.out.println("\nOriginal unchanged: " + original);
+        System.out.println("Assigned (new):     " + assigned);
+        System.out.println("Escalated (new):    " + escalated);
 
-        // Demonstrate external mutation via leaked list reference
-        List<String> tags = t.getTags();
-        tags.add("HACKED_FROM_OUTSIDE");
-        System.out.println("\nAfter external tag mutation: " + t);
+        List<String> leaked = escalated.getTags();
+        try {
+            leaked.add("HACKED_FROM_OUTSIDE");
+            System.out.println("\nUnexpected: tag list was mutated!");
+        } catch (UnsupportedOperationException e) {
+            System.out.println("\nExternal tag mutation rejected (list is unmodifiable).");
+        }
+        System.out.println("Escalated still:    " + escalated);
 
-        // Starter compiles; after refactor, you should redesign updates to create new objects instead.
+        IncidentTicket updated = escalated.toBuilder()
+                .description("Retried after maintenance window")
+                .slaMinutes(60)
+                .build();
+        System.out.println("\nUpdated via toBuilder(): " + updated);
     }
 }
